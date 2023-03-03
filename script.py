@@ -2,6 +2,18 @@ import pandas as pd
 import numpy as np
 import gc
 from sklearn.metrics import accuracy_score, roc_auc_score, f1_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+import warnings
+from sklearn.model_selection import train_test_split, GridSearchCV
+from lightgbm import LGBMClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
+import xgboost as xgb
 
 
 # Preprocess application_train.csv
@@ -31,3 +43,34 @@ def eval_metrics(actual, pred):
     return accuracy, f1, roc
 
 
+if __name__ == "__main__":
+    warnings.filterwarnings("ignore")
+
+    # Split the data into training and test sets. (0.75, 0.25) split.
+    df = application_train(10000)
+    train, test = train_test_split(df)
+
+    # The predicted column is "TARGET" (0 or 1)
+    train_x = train.drop(["TARGET"], axis=1)
+    test_x = test.drop(["TARGET"], axis=1)
+    train_y = train[["TARGET"]]
+    test_y = test[["TARGET"]]
+
+    # Pipeline that aggregates preprocessing steps (encoder + model)
+    steps = [("ohe", OneHotEncoder(handle_unknown="ignore")), ("model", LGBMClassifier())]
+    pipe = Pipeline(steps)
+    pipe.fit(train_x, train_y)
+
+    # GridSearchCV that allows to choose the best model for the problem
+    param_grid = {"model": [LogisticRegression(),
+                            LGBMClassifier(),
+                            KNeighborsClassifier(),
+                            xgb.XGBClassifier(),
+                            DecisionTreeClassifier(),
+                            RandomForestClassifier(),
+                            GaussianNB(),
+                            SVC()]}
+
+    grid = GridSearchCV(pipe, param_grid, cv=5, return_train_score=True)
+    grid.fit(test_x, test_y)
+    print("Best: ", grid.best_score_, "using ", grid.best_params_)
