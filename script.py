@@ -8,7 +8,7 @@ import warnings
 from sklearn.model_selection import train_test_split, GridSearchCV
 from lightgbm import LGBMClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
@@ -77,13 +77,13 @@ if __name__ == "__main__":
                             GaussianNB(),
                             SVC()]}
 
-    grid = GridSearchCV(pipe, param_grid, cv=5, return_train_score=True)
+    grid = GridSearchCV(pipe, param_grid, cv=5, return_train_score=True, scoring="f1")
     grid.fit(test_x, test_y)
     print("Best: ", grid.best_score_, "using ", grid.best_params_)
 
     # Model parameters
-    n_estimators = float(sys.argv[2]) if len(sys.argv) > 1 else 100
-    min_samples_split = float(sys.argv[1]) if len(sys.argv) > 2 else 2
+    n_estimators = int(sys.argv[1]) if len(sys.argv) > 1 else 100
+    min_samples_split = int(sys.argv[2]) if len(sys.argv) > 2 else 2
 
     # Start the model with mlflow
     with mlflow.start_run():
