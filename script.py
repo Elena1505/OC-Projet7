@@ -63,7 +63,7 @@ if __name__ == "__main__":
     test_y = test[["TARGET"]]
 
     # Pipeline that aggregates preprocessing steps (encoder + model)
-    steps = [("ohe", OneHotEncoder(handle_unknown="ignore")), ("model", LGBMClassifier())]
+    steps = [("ohe", OneHotEncoder(handle_unknown="ignore")), ("std", StandardScaler(with_mean=False)), ("model", LGBMClassifier())]
     pipe = Pipeline(steps)
     pipe.fit(train_x, train_y)
 
